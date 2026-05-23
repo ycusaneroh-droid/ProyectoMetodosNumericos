@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Métodos Numéricos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center mb-4 text-primary">Calculadora de Métodos Numéricos</h1>
+        <p class="text-center text-muted">Proyecto Colaborativo - Desarrollo de Algoritmos</p>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card shadow-sm p-4 mb-4 bg-white rounded">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Función Matemática:</label>
+                            <input type="text" name="funcion" class="form-placeholder form-control" value="{{ funcion|default:'x^2 - 4' }}" placeholder="Ej: x^2 - 4 o math.exp(x) - 5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Selecciona el Método:</label>
+                            <select name="tipo_metodo" class="form-select" id="metodoSelect" onchange="alternarCampos()">
+                                <option value="newton">Newton-Raphson Tradicional</option>
+                                <option value="newton_mod">Newton-Raphson Modificado</option>
+                                <option value="taylor">Serie de Taylor</option>
+                            </select>
+                        </div>
+
+                        <div id="campos_newton">
+                            <div class="mb-3">
+                                <label class="form-label">Aproximación Inicial (x0):</label>
+                                <input type="number" step="any" name="newton_x0" class="form-control" value="1.0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tolerancia:</label>
+                                <input type="number" step="any" name="newton_tol" class="form-control" value="0.0001">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Iteraciones Máximas:</label>
+                                <input type="number" name="newton_iter" class="form-control" value="20">
+                            </div>
+                        </div>
+
+                        <div id="campos_taylor" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Valor de x a evaluar:</label>
+                                <input type="number" step="any" name="taylor_x" class="form-control" value="1.0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Punto de centrado (a):</label>
+                                <input type="number" step="any" name="taylor_a" class="form-control" value="0.0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Grado de polinomio (n):</label>
+                                <input type="number" name="taylor_n" class="form-control" value="4">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Calcular Raíz / Aproximación</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                {% if resultado is not None %}
+                    <div class="card shadow-sm p-4 bg-white rounded">
+                        <h3 class="text-success">Resultado Final utilizando {{ metodo }}:</h3>
+                        <p class="fs-4 fw-bold">Raíz o Valor Aproximado: <span class="badge bg-success">{{ resultado }}</span></p>
+                        
+                        <h4 class="mt-4">Historial de Convergencia (Iteraciones)</h4>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mt-2">
+                                <thead class="table-dark">
+                                    {% if metodo == 'Taylor' %}
+                                        <tr>
+                                            <th>Iteración (n)</th>
+                                            <th>Valor del Término</th>
+                                            <th>Suma Acumulada</th>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <th>Iteración</th>
+                                            <th>x_n</th>
+                                            <th>f(x_n)</th>
+                                            <th>f'(x_n)</th>
+                                            <th>Siguiente x_(n+1)</th>
+                                            <th>Error Relativo %</th>
+                                        </tr>
+                                    {% endif %}
+                                </thead>
+                                <tbody>
+                                    {% for fila in historial %}
+                                        {% if metodo == 'Taylor' %}
+                                            <tr>
+                                                <td>{{ fila.iteracion }}</td>
+                                                <td>{{ fila.termino }}</td>
+                                                <td>{{ fila.acumulado }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td>{{ fila.iteracion }}</td>
+                                                <td>{{ fila.x_ant }}</td>
+                                                <td>{{ fila.fx }}</td>
+                                                <td>{{ fila.d1 }}</td>
+                                                <td>{{ fila.x_sig }}</td>
+                                                <td>{{ fila.error }}%</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        Ingresa los parámetros a la izquierda y presiona calcular para desplegar la tabla de iteraciones.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function alternarCampos() {
+            var metodo = document.getElementById("metodoSelect").value;
+            if (metodo === "taylor") {
+                document.getElementById("campos_taylor").style.display = "block";
+                document.getElementById("campos_newton").style.display = "none";
+            } else {
+                document.getElementById("campos_taylor").style.display = "none";
+                document.getElementById("campos_newton").style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
