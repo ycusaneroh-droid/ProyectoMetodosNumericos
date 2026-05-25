@@ -105,6 +105,8 @@ def metodo_newton_raphson(funcion_str, x0, tol, max_iter, modificado=False):
 
 # --- VISTAS DE DJANGO ---
 
+# --- VISTAS DE DJANGO ---
+
 def home(request):
     contexto = {}
     if request.method == 'POST':
@@ -116,7 +118,22 @@ def home(request):
             a = float(request.POST.get('taylor_a', 0))
             n = int(request.POST.get('taylor_n', 4))
             resultado, historial = metodo_taylor(funcion, x, a, n)
-            contexto = {'resultado': resultado, 'historial': historial, 'metodo': 'Taylor', 'funcion': funcion}
+            
+            # AGREGASTE ESTA EXPLICACIÓN:
+            explicacion = (
+                f"El método de la Serie de Taylor aproximó el valor de la función '{funcion}' evaluada en x = {x}, "
+                f"tomando como centro de desarrollo un punto conocido a = {a} a lo largo de {n} términos (orden). "
+                f"Cada iteración agrega un nuevo término calculando la i-ésima derivada dividida por su factorial, "
+                f"reduciendo gradualmente el error de truncamiento."
+            )
+            
+            contexto = {
+                'resultado': resultado, 
+                'historial': historial, 
+                'metodo': 'Taylor', 
+                'funcion': funcion,
+                'explicacion': explicacion
+            }
             
         elif tipo_metodo in ['newton', 'newton_mod']:
             x0 = float(request.POST.get('newton_x0', 1))
@@ -126,6 +143,27 @@ def home(request):
             
             resultado, historial = metodo_newton_raphson(funcion, x0, tol, max_iter, modificado=mod)
             nombre = "Newton-Raphson Modificado" if mod else "Newton-Raphson Tradicional"
-            contexto = {'resultado': resultado, 'historial': historial, 'metodo': nombre, 'funcion': funcion}
+            
+            # AGREGASTE ESTA EXPLICACIÓN:
+            if mod:
+                explicacion = (
+                    f"Se aplicó el método de Newton-Raphson Modificado para hallar la raíz de '{funcion}' iniciando en x0 = {x0}. "
+                    f"Este método es ideal porque incluye de forma analítica la segunda derivada en su denominador. "
+                    f"Esto evita que el algoritmo falle o se vuelva lento si la ecuación tiene raíces múltiples o tangentes horizontales."
+                )
+            else:
+                explicacion = (
+                    f"Se aplicó el método de Newton-Raphson Tradicional para hallar la raíz de '{funcion}' iniciando en x0 = {x0}. "
+                    f"El algoritmo utiliza la recta tangente de la curva (primera derivada) en cada punto para aproximarse geométricamente "
+                    f"hacia el cero de la función. Tiene una velocidad de convergencia cuadrática muy eficiente."
+                )
+            
+            contexto = {
+                'resultado': resultado, 
+                'historial': historial, 
+                'metodo': nombre, 
+                'funcion': funcion,
+                'explicacion': explicacion
+            }
 
     return render(request, 'calculadora/index.html', contexto)
